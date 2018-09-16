@@ -7,6 +7,9 @@ public interface CurrencyCode extends Serializable {
 	/*
 	 * Currencies
 	 */
+	String AUD = "AUD";
+	String CAD = "CAD";
+	String CHF = "CHF";
 	String CZK = "CZK";
 	String EUR = "EUR";
 	String GBP = "GBP";

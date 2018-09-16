@@ -7,6 +7,7 @@ public abstract class AbstractAttribute<V> implements Attribute<V> {
 
 	private static final long serialVersionUID = 245128739597965021L;
 
+	private final boolean hierarchical;
 	private final boolean mandatory;
 	private final Attribute.Matcher<V> matcher;
 	private final String name;
@@ -16,14 +17,16 @@ public abstract class AbstractAttribute<V> implements Attribute<V> {
 	}
 
 	protected AbstractAttribute(final String name, final Attribute.Matcher<?> matcher) {
-		this(name, matcher, false);
+		this(name, matcher, false, false);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected AbstractAttribute(final String name, final Attribute.Matcher<?> matcher, final boolean mandatory) {
+	protected AbstractAttribute(final String name, final Attribute.Matcher<?> matcher, final boolean mandatory,
+			final boolean hierarchical) {
 		this.name = name;
 		this.matcher = (Attribute.Matcher<V>) matcher;
 		this.mandatory = mandatory;
+		this.hierarchical = hierarchical;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -62,9 +65,12 @@ public abstract class AbstractAttribute<V> implements Attribute<V> {
 		return result;
 	}
 
+	public final boolean isHierarchical() {
+		return hierarchical;
+	}
+
 	public final boolean isMandatory() {
 		return mandatory;
-
 	}
 
 	@Override

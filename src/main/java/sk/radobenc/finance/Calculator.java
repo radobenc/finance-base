@@ -16,7 +16,7 @@ public class Calculator {
 
 		private final Map<Attribute<?>, Object> attributes = new HashMap<Attribute<?>, Object>();
 
-		public Filter add(final Attribute<?> attribute, final Object value) {
+		public <V> Filter add(final Attribute<V> attribute, final Object value) {
 			attributes.put(attribute, value);
 			return this;
 		}
@@ -41,17 +41,18 @@ public class Calculator {
 		 * Returns true if all attributes of payment match this filter.
 		 *
 		 * @param payment the payment to check
+		 * @param time    the time to which check
 		 * @return true is all attributes match
 		 */
 		@SuppressWarnings("unchecked")
-		public boolean matchAll(final Payment payment) {
+		public boolean matchAll(final Payment payment, final long time) {
 			boolean result = true;
 			for (final Map.Entry<Attribute<?>, Object> e : attributes.entrySet()) {
 				if (!result) {
 					return false; // Fast exit
 				}
 				final Attribute.Matcher<Object> matcher = (Matcher<Object>) e.getKey().getMatcher();
-				final Object paymentValue = payment.getAttribute(e.getKey());
+				final Object paymentValue = payment.getAttribute(e.getKey(), time);
 				result &= matcher.matches(paymentValue, e.getValue());
 			}
 			return result;
@@ -61,13 +62,14 @@ public class Calculator {
 		 * Returns true if at least one attribute of payments matches this filter.
 		 *
 		 * @param payment the payment to check
+		 * @param time    the time to check
 		 * @return true if there is a match
 		 */
 		@SuppressWarnings("unchecked")
-		public boolean matchAny(final Payment payment) {
+		public boolean matchAny(final Payment payment, final long time) {
 			for (final Map.Entry<Attribute<?>, Object> e : attributes.entrySet()) {
 				final Attribute.Matcher<Object> matcher = (Matcher<Object>) e.getKey().getMatcher();
-				final Object paymentValue = payment.getAttribute(e.getKey());
+				final Object paymentValue = payment.getAttribute(e.getKey(), time);
 				if (matcher.matches(paymentValue, e.getValue())) {
 					return true;
 				}
@@ -89,7 +91,8 @@ public class Calculator {
 
 	public static class Result {
 
-		private final Map<Map<Attribute<?>, Object>, BigDecimal> map = new HashMap<Map<Attribute<?>, Object>, BigDecimal>();
+		@SuppressWarnings("rawtypes")
+		private final Map<Map<Attribute, Object>, BigDecimal> map = new HashMap<Map<Attribute, Object>, BigDecimal>();
 
 		public void clear() {
 			map.clear();
@@ -111,10 +114,10 @@ public class Calculator {
 			return map.hashCode();
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public Result list(final Filter filter) {
 			final Result result = new Result();
-			for (final Map.Entry<Map<Attribute<?>, Object>, BigDecimal> e : map.entrySet()) {
+			for (final Map.Entry<Map<Attribute, Object>, BigDecimal> e : map.entrySet()) {
 				boolean match = true;
 				for (final Map.Entry<Attribute<?>, Object> f : filter.attributes.entrySet()) {
 					final Attribute.Matcher<Object> matcher = (Matcher<Object>) f.getKey().getMatcher();
@@ -128,7 +131,8 @@ public class Calculator {
 			return result;
 		}
 
-		public BigDecimal put(final Map<Attribute<?>, Object> key, final BigDecimal value) {
+		@SuppressWarnings("rawtypes")
+		public BigDecimal put(final Map<Attribute, Object> key, final BigDecimal value) {
 			return map.put(key, value);
 		}
 
@@ -136,11 +140,14 @@ public class Calculator {
 			return map.size();
 		}
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public Collection<Payment> toPayments() {
 			final Collection<Payment> result = new ArrayList<Payment>();
-			for (final Map.Entry<Map<Attribute<?>, Object>, BigDecimal> e : map.entrySet()) {
+			for (final Map.Entry<Map<Attribute, Object>, BigDecimal> e : map.entrySet()) {
 				final Payment payment = Payments.create(e.getValue(), (String) e.getKey().get(Attribute.CURRENCY_CODE));
-				payment.putAttributes(e.getKey());
+				for (final Map.Entry<Attribute, Object> a : e.getKey().entrySet()) {
+					payment.addAttribute(a.getKey(), Values.create(a.getValue()));
+				}
 				result.add(payment);
 			}
 			return result;
@@ -159,14 +166,16 @@ public class Calculator {
 	 *
 	 * @param payments the payments to aggregate
 	 * @param filter   the filter
+	 * @param time     the time
 	 * @return the aggregated result
 	 */
-	public static Result aggregate(final Collection<Payment> payments, final Filter filter) {
+	@SuppressWarnings("rawtypes")
+	public static Result aggregate(final Collection<Payment> payments, final Filter filter, final long time) {
 		checkPayments(payments);
 		final Result result = new Result();
 		for (final Payment p : payments) {
-			if (null == filter || filter.matchAll(p)) {
-				final Map<Attribute<?>, Object> attributes = p.getAttributes();
+			if (null == filter || filter.matchAll(p, time)) {
+				final Map<Attribute, Object> attributes = p.getAttributes(time);
 				BigDecimal old = BigDecimal.ZERO;
 				if (result.containsKey(attributes)) {
 					old = result.get(attributes);
@@ -200,14 +209,15 @@ public class Calculator {
 	 *
 	 * @param payments the payments to sum up
 	 * @param filter   the filter
+	 * @param time     the time of the check
 	 * @return the sum of amounts
 	 */
-	public static BigDecimal sum(final Collection<Payment> payments, final Filter filter) {
+	public static BigDecimal sum(final Collection<Payment> payments, final Filter filter, final long time) {
 		checkPayments(payments);
 		checkFilter(filter);
 		BigDecimal result = BigDecimal.ZERO;
 		for (final Payment p : payments) {
-			if (filter.matchAll(p)) {
+			if (filter.matchAll(p, time)) {
 				result = result.add(new BigDecimal(p.getAmount().toString()));
 			}
 		}

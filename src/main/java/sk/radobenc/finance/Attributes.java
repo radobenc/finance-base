@@ -71,23 +71,23 @@ public class Attributes {
 	}
 
 	public static Attribute<String> create(final String name) {
-		return create(name, createStringAttributeMatcher(name), false);
+		return create(name, createStringAttributeMatcher(name), false, false);
 	}
 
 	public static <V> Attribute<V> create(final String name, final Attribute.Matcher<V> matcher) {
-		return create(name, matcher, false);
+		return create(name, matcher, false, false);
 	}
 
 	public static <V> Attribute<V> create(final String name, final Attribute.Matcher<V> matcher,
-			final boolean mandatory) {
-		return new AbstractAttribute<V>(name, matcher, mandatory) {
+			final boolean mandatory, final boolean hierarchical) {
+		return new AbstractAttribute<V>(name, matcher, mandatory, hierarchical) {
 
 			private static final long serialVersionUID = -4702361245242880357L;
 		};
 	}
 
 	public static Attribute<String> create(final String name, final boolean mandatory) {
-		return create(name, createStringAttributeMatcher(name), mandatory);
+		return create(name, createStringAttributeMatcher(name), mandatory, false);
 	}
 
 	public static Attribute.Matcher<FinDate> createFinDateAttributeMatcher(final String attributeName) {

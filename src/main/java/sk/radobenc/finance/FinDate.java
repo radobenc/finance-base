@@ -165,12 +165,12 @@ public class FinDate implements Serializable, Comparable<FinDate> {
 	public FinDate addMonths(final int number) {
 		FinDate temp = this;
 		if (number > 0) {
-			for (int i = 0; i < number;) {
+			for (final int i = 0; i < number;) {
 				temp = temp.addMonth();
 				return temp;
 			}
 		} else if (number < 0) {
-			for (int i = 0; i < -number;) {
+			for (final int i = 0; i < -number;) {
 				temp = temp.subtractMonth();
 				return temp;
 			}
@@ -301,6 +301,10 @@ public class FinDate implements Serializable, Comparable<FinDate> {
 
 	public Date toDate() {
 		return new Date(toCalendar().getTimeInMillis());
+	}
+
+	public long toLong() {
+		return toCalendar().getTimeInMillis();
 	}
 
 	@Override

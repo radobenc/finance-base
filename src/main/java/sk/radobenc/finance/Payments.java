@@ -20,7 +20,7 @@ public class Payments {
 				private static final long serialVersionUID = -5115732910958526678L;
 
 			};
-			p.addAttribute(Attribute.CURRENCY_CODE, currencyCode);
+			p.addAttribute(Attribute.CURRENCY_CODE, Values.create(currencyCode));
 			return p;
 		}
 		throw new IllegalArgumentException(String.format("Illegal currency code = '%s'", currencyCode));
@@ -32,19 +32,19 @@ public class Payments {
 		}
 		final List<Payment> result = new ArrayList<Payment>();
 		FinDate current = order.getStartDate();
-		final String currencyCode = (String) order.getAttribute(Attribute.CURRENCY_CODE);
+		final String currencyCode = order.getAttribute(Attribute.CURRENCY_CODE, Value.MIN_TIME);
 		if (null == currencyCode) {
 			throw new IllegalArgumentException("order.currecy = " + currencyCode);
 		}
 		while (!current.after(order.getEndDate())) {
-			final Payment p = create(order.getAmount(), (String) order.getAttribute(Attribute.CURRENCY_CODE));
-			p.putAttributes(order.getAttributes());
+			final Payment p = create(order.getAmount(), order.getAttribute(Attribute.CURRENCY_CODE, Value.MIN_TIME));
+			p.setAttributes(order.getAttributes());
 			FinDate billingDate = current;
 			if (order.isSkippingWeekends()) {
 				billingDate = current.previousWorkingDate();
 			}
-			p.addAttribute(Attribute.BILLING_DATE, billingDate);
-			p.addAttribute(Attribute.ORDER_NAME, order.getName());
+			p.addAttribute(Attribute.BILLING_DATE, Values.create(billingDate));
+			p.addAttribute(Attribute.ORDER_NAME, Values.create(order.getName()));
 			result.add(p);
 			switch (order.getFrequency()) {
 			case DAILY:

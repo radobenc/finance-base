@@ -15,9 +15,9 @@ public class PaymentTest {
 	@Test
 	public void testAddAttribute() {
 		final Payment p1 = Payments.create(100, CurrencyCode.EUR);
-		p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
 		assertEquals(2, p1.getAttributes().size());
-		p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
 		assertEquals(2, p1.getAttributes().size());
 		try {
 			p1.addAttribute(null, null);
@@ -26,7 +26,7 @@ public class PaymentTest {
 			TestUtils.checkException(IllegalArgumentException.class, e);
 		}
 		try {
-			p1.addAttribute(null, "VALUE");
+			p1.addAttribute(null, Values.create("VALUE"));
 			throw new IllegalStateException(TestUtils.EXCEPTION_EXPECTED_BUT_NOT_THROWN);
 		} catch (final Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
@@ -37,10 +37,10 @@ public class PaymentTest {
 		} catch (final Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
 		}
-		p1.addAttribute(Attribute.DESCRIPTION, "First description");
-		assertEquals("First description", p1.getAttribute(Attribute.DESCRIPTION));
-		p1.addAttribute(Attribute.DESCRIPTION, "Second description");
-		assertEquals("Second description", p1.getAttribute(Attribute.DESCRIPTION));
+		p1.addAttribute(Attribute.DESCRIPTION, Values.create("First description"));
+		assertEquals("First description", p1.getAttribute(Attribute.DESCRIPTION, Value.MIN_TIME));
+		p1.addAttribute(Attribute.DESCRIPTION, Values.create("Second description"));
+		assertEquals("Second description", p1.getAttribute(Attribute.DESCRIPTION, Value.MIN_TIME));
 		assertEquals(3, p1.getAttributes().size());
 	}
 
@@ -56,18 +56,18 @@ public class PaymentTest {
 	@Test
 	public void testGetAttributeDefaultValue() {
 		final Payment p1 = Payments.create(100, CurrencyCode.EUR);
-		p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
-		p1.addAttribute(Attribute.DESCRIPTION, "TEST");
-		assertEquals(FinDate.MIN, p1.getAttribute(Attribute.PROCESSING_DATE, FinDate.MIN));
-		assertNull(p1.getAttribute(Attribute.PROCESSING_DATE, null));
+		p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.DESCRIPTION, Values.create("TEST"));
+		assertEquals(FinDate.MIN, p1.getAttribute(Attribute.PROCESSING_DATE, Value.MIN_TIME, FinDate.MIN));
+		assertNull(p1.getAttribute(Attribute.PROCESSING_DATE, Value.MIN_TIME, null));
 	}
 
 	@Test
 	public void testGetAttributes() {
 		try {
 			final Payment p1 = Payments.create(100, CurrencyCode.EUR);
-			p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
-			p1.getAttributes().put(Attribute.DESCRIPTION, "TEST");
+			p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
+			p1.getAttributes().put(Attribute.DESCRIPTION, Values.create("TEST"));
 			throw new IllegalStateException(TestUtils.EXCEPTION_EXPECTED_BUT_NOT_THROWN);
 		} catch (final Exception e) {
 			TestUtils.checkException(UnsupportedOperationException.class, e);
@@ -77,7 +77,7 @@ public class PaymentTest {
 	@Test
 	public void testHasAttribute() {
 		final Payment p1 = Payments.create(100, CurrencyCode.EUR);
-		p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
 		assertTrue(p1.hasAttribute(Attribute.BILLING_DATE));
 		assertFalse(p1.hasAttribute(Attribute.SOURCE_ACCOUNT));
 	}
@@ -100,18 +100,18 @@ public class PaymentTest {
 	@Test
 	public void testPutAttributes() {
 		final Payment p1 = Payments.create(100, CurrencyCode.EUR);
-		p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
-		p1.addAttribute(Attribute.PROCESSING_DATE, new FinDate(2018, 9, 1));
-		final Map<Attribute<?>, Object> other = new HashMap<Attribute<?>, Object>();
-		other.put(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
-		other.put(Attribute.CURRENCY_CODE, CurrencyCode.USD);
-		other.put(Attribute.DESCRIPTION, "other attributes");
-		p1.putAttributes(other);
+		p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.PROCESSING_DATE, Values.createFinDate(2018, 9, 1));
+		final Map<Attribute<?>, Value<?>> other = new HashMap<Attribute<?>, Value<?>>();
+		other.put(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
+		other.put(Attribute.CURRENCY_CODE, Values.create(CurrencyCode.USD));
+		other.put(Attribute.DESCRIPTION, Values.create("other attributes"));
+		p1.setAttributes(other);
 		assertEquals(4, p1.getAttributes().size());
-		assertEquals(CurrencyCode.USD, p1.getAttribute(Attribute.CURRENCY_CODE));
-		assertEquals("other attributes", p1.getAttribute(Attribute.DESCRIPTION));
+		assertEquals(CurrencyCode.USD, p1.getAttribute(Attribute.CURRENCY_CODE, Value.MIN_TIME));
+		assertEquals("other attributes", p1.getAttribute(Attribute.DESCRIPTION, Value.MIN_TIME));
 		try {
-			p1.putAttributes(null);
+			p1.setAttributes(null);
 			throw new IllegalStateException(TestUtils.EXCEPTION_EXPECTED_BUT_NOT_THROWN);
 		} catch (final Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
@@ -121,8 +121,8 @@ public class PaymentTest {
 	@Test
 	public void testRemoveAttributes() {
 		final Payment p1 = Payments.create(100, CurrencyCode.EUR);
-		p1.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
-		p1.addAttribute(Attribute.PROCESSING_DATE, new FinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
+		p1.addAttribute(Attribute.PROCESSING_DATE, Values.createFinDate(2018, 9, 1));
 		assertEquals(3, p1.getAttributes().size());
 		try {
 			p1.removeAttribute(null);

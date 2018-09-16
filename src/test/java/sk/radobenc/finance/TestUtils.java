@@ -26,9 +26,9 @@ public final class TestUtils {
 	static void printPayments(final Collection<Payment> payments) {
 		final PrintStream ps = new PrintStream(System.out);
 		for (final Payment p : payments) {
-			final FinDate billingDate = (FinDate) p.getAttribute(Attribute.BILLING_DATE, FinDate.MIN);
+			final FinDate billingDate = (FinDate) p.getAttribute(Attribute.BILLING_DATE, Value.MIN_TIME, FinDate.MIN);
 			ps.println(String.format("%s %f %s", billingDate, new BigDecimal(p.getAmount().toString()),
-					p.getAttribute(Attribute.CURRENCY_CODE)));
+					p.getAttribute(Attribute.CURRENCY_CODE, Value.MIN_TIME)));
 		}
 	
 	}

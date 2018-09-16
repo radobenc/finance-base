@@ -32,6 +32,8 @@ public interface Attribute<V> extends Cloneable, Serializable {
 
 	String getName();
 
+	boolean isHierarchical();
+
 	boolean isMandatory();
 
 }
