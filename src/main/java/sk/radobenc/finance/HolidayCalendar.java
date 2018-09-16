@@ -138,6 +138,10 @@ public class HolidayCalendar implements Serializable {
 		return new FinDate(year, 10, 28);
 	}
 
+	public static FinDate easterMonday(final int year) {
+		return easterSunday(year).addDays(1);
+	}
+
 	/**
 	 * Calculates Easter Sunday Written by Gregory N. Mirsky, adjusted by Rado Benc
 	 * Source: 2nd Edition by Peter Duffett-Smith. It was originally from Butcher's
@@ -418,9 +422,5 @@ public class HolidayCalendar implements Serializable {
 		return dates.contains(new DayOfYear(finDate.getDay(), finDate.getMonth()))
 				|| finDate.equals(goodFriday(finDate.getYear()))
 				|| finDate.equals(easterSunday(finDate.getYear()).addDays(1));
-	}
-
-	public static FinDate easterMonday(int year) {
-		return easterSunday(year).addDays(1);
 	}
 }

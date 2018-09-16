@@ -14,8 +14,10 @@ import sk.radobenc.finance.Calculator.Result;
 
 public class CalculatorTest {
 
-	private static final String DESCRIPTION_PAYMENT_IN_SKK = "Payment in SKK";
-	private static final FinDate BILLING_DATE_2004_07_14 = new FinDate(2004, 7, 14);
+	private static final String STRING_PAYMENT_IN_SKK = "Payment in SKK";
+	private static final FinDate FIN_DATE_2004_07_14 = new FinDate(2004, 7, 14);
+	private static final Value<String> DESCRIPTION_PAYMENT_IN_SKK = Values.create(STRING_PAYMENT_IN_SKK);
+	private static final Value<FinDate> BILLING_DATE_2004_07_14 = Values.createFinDate(2004, 7, 14);
 
 	static List<Payment> examplePayments1() {
 		List<Payment> result = new ArrayList<Payment>();
@@ -31,31 +33,31 @@ public class CalculatorTest {
 		result.add(payment);
 		// #3
 		payment = Payments.create(100, CurrencyCode.EUR);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 5, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 5, 10));
 		result.add(payment);
 		// #4
 		payment = Payments.create(150, CurrencyCode.EUR);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 6, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 6, 10));
 		result.add(payment);
 		// #5
 		payment = Payments.create(-15, CurrencyCode.EUR);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 6, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 6, 10));
 		result.add(payment);
 		// #6
 		payment = Payments.create(180, CurrencyCode.USD);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 6, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 6, 10));
 		result.add(payment);
 		// #7
 		payment = Payments.create(-18, CurrencyCode.USD);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 6, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 6, 10));
 		result.add(payment);
 		// #8
 		payment = Payments.create(200, CurrencyCode.EUR);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 7, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 7, 10));
 		result.add(payment);
 		// #9
 		payment = Payments.create(250, CurrencyCode.EUR);
-		payment.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 8, 10));
+		payment.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 8, 10));
 		result.add(payment);
 		return result;
 	}
@@ -67,18 +69,19 @@ public class CalculatorTest {
 	@Test
 	public void testAggregate() {
 		try {
-			Calculator.aggregate(null, null);
+			Calculator.aggregate(null, null, Value.MIN_TIME);
 			throw new IllegalStateException(TestUtils.EXCEPTION_EXPECTED_BUT_NOT_THROWN);
 		} catch (Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
 		}
-		Result result = Calculator.aggregate(examplePayments1(), null);
+		Result result = Calculator.aggregate(examplePayments1(), null, Value.MIN_TIME);
 		assertEquals(6, result.size());
 		Calculator.Filter filter = new Calculator.Filter().add(Attribute.CURRENCY_CODE, CurrencyCode.SKK)
-				.add(Attribute.DESCRIPTION, DESCRIPTION_PAYMENT_IN_SKK).add(Attribute.BILLING_DATE, BILLING_DATE_2004_07_14);
+				.add(Attribute.DESCRIPTION, STRING_PAYMENT_IN_SKK)
+				.add(Attribute.BILLING_DATE, FIN_DATE_2004_07_14);
 		assertEquals(new BigDecimal(20000), result.get(filter));
 		filter = new Calculator.Filter().add(Attribute.CURRENCY_CODE, CurrencyCode.SKK);
-		result = Calculator.aggregate(examplePayments1(), filter);
+		result = Calculator.aggregate(examplePayments1(), filter, Value.MIN_TIME);
 		assertNull(result.get(filter)); // get brings exact match
 		result = result.list(filter);
 		TestUtils.printPayments(result.toPayments());
@@ -87,23 +90,24 @@ public class CalculatorTest {
 	@Test
 	public void testSum() {
 		try {
-			Calculator.sum(null, null);
+			Calculator.sum(null, null, Value.MIN_TIME);
 			throw new IllegalStateException(TestUtils.EXCEPTION_EXPECTED_BUT_NOT_THROWN);
 		} catch (final Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
 		}
 		try {
-			Calculator.sum(new ArrayList<Payment>(), null);
+			Calculator.sum(new ArrayList<Payment>(), null, Value.MIN_TIME);
 			throw new IllegalStateException(TestUtils.EXCEPTION_EXPECTED_BUT_NOT_THROWN);
 		} catch (final Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
 		}
-		Calculator.Filter filter = new Calculator.Filter().add(Attribute.CURRENCY_CODE, CurrencyCode.EUR).add(Attribute.BILLING_DATE,
-				new FinDate(2018, 7, 31));
-		assertEquals(new BigDecimal(435), Calculator.sum(examplePayments1(), filter));
-		filter = new Calculator.Filter().add(Attribute.CURRENCY_CODE, CurrencyCode.SKK).add(Attribute.BILLING_DATE,
-				BILLING_DATE_2004_07_14).add(Attribute.DESCRIPTION, DESCRIPTION_PAYMENT_IN_SKK);
-		assertEquals(new BigDecimal(20000), Calculator.sum(examplePayments1(), filter));
+		Calculator.Filter filter = new Calculator.Filter().add(Attribute.CURRENCY_CODE, CurrencyCode.EUR)
+				.add(Attribute.BILLING_DATE, new FinDate(2018, 7, 31));
+		assertEquals(new BigDecimal(435), Calculator.sum(examplePayments1(), filter, Value.MIN_TIME));
+		filter = new Calculator.Filter().add(Attribute.CURRENCY_CODE, CurrencyCode.SKK)
+				.add(Attribute.BILLING_DATE, FIN_DATE_2004_07_14)
+				.add(Attribute.DESCRIPTION, STRING_PAYMENT_IN_SKK);
+		assertEquals(new BigDecimal(20000), Calculator.sum(examplePayments1(), filter, Value.MIN_TIME));
 	}
 
 }

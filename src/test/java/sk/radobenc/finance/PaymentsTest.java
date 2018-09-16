@@ -26,7 +26,7 @@ public class PaymentsTest {
 		} catch (final Exception e) {
 			TestUtils.checkException(IllegalArgumentException.class, e);
 		}
-		o.addAttribute(Attribute.CURRENCY_CODE, CurrencyCode.EUR);
+		o.addAttribute(Attribute.CURRENCY_CODE, Values.create(CurrencyCode.EUR));
 		result = Payments.list(o);
 		assertNotNull(result);
 		assertEquals(134, result.size());

@@ -21,7 +21,7 @@ public class ValidatorTest {
 		assertFalse(paymentValidator.isValid(p));
 		p = Payments.create(100, "USD");
 		assertTrue(paymentValidator.isValid(p));
-		p.addAttribute(Attribute.BILLING_DATE, new FinDate(2018, 9, 1));
+		p.addAttribute(Attribute.BILLING_DATE, Values.createFinDate(2018, 9, 1));
 		assertTrue(paymentValidator.isValid(p));
 	}
 
